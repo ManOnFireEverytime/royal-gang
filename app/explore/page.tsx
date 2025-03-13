@@ -3,8 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import Card from "../_components/Card";
 import PageWrapper from "../_components/PageWrapper";
-import embraceTshirt from "@/public/embrace.webp";
-import signatureTank from "@/public/signatureTank.webp";
 
 // Define the Product interface
 interface Product {
