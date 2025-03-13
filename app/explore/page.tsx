@@ -15,7 +15,7 @@ export default function ExploreAll() {
     queryKey: ["products"],
     queryFn: async function (): Promise<Product[]> {
       const response = await fetch(
-        "https://backend.royalgangchambers.com/getAllProducts.php",
+        "https://backend.oceansteeze.com/getAllProducts.php",
       );
       
       if (!response.ok) {
