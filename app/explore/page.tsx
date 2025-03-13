@@ -32,7 +32,7 @@ export default function ExploreAll() {
     <PageWrapper>
       <h1 className="py-4 text-center font-bold">ALL PRODUCTS</h1>
       
-      {status === "loading" && (
+      {status === "pending" && (
         <div className="flex justify-center py-10">
           <p>Loading products...</p>
         </div>
@@ -46,7 +46,7 @@ export default function ExploreAll() {
       
       {status === "success" && (
         <div className="grid grid-cols-2 place-items-center items-center justify-between lg:grid-cols-4">
-          {products.map((product) => (
+          {products && products.map((product) => (
             <Card key={product.id} productInfo={product} />
           ))}
         </div>
