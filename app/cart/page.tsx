@@ -42,7 +42,7 @@ export default function CartPage() {
 
   // Using the cartItems from useCart hook
   const { cartItems } = useCart();
-  const { fetchShippingRates, shippingRates, selectedRate } = useShipping();
+  const { fetchShippingRates, selectedRate } = useShipping();
 
   const {
     register,
@@ -181,7 +181,7 @@ useEffect(() => {
   }
 
   return (
-    <main className="flex h-dvh flex-col space-y-3 bg-background px-4 pb-10 pt-20 lg:space-y-6 lg:overflow-hidden lg:px-10">
+    <main className="flex h-dvh flex-col space-y-3 bg-background px-4 pb-10 pt-20 lg:space-y-6  lg:px-10">
       <button
         type="button"
         onClick={goBack}
@@ -193,7 +193,7 @@ useEffect(() => {
 
       <form
         onSubmit={handleSubmit(submitHandler)}
-        className="flex flex-grow flex-col gap-y-6 py-2 lg:flex-row lg:justify-between lg:gap-x-10 lg:divide-x lg:overflow-hidden lg:py-0"
+        className="flex flex-grow flex-col gap-y-6 py-2 lg:flex-row lg:justify-between lg:gap-x-10 lg:divide-x  lg:py-0"
       >
         {proceedToCheckout ? (
           <>

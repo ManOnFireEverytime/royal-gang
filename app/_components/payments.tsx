@@ -6,6 +6,20 @@ import { Inputs } from "../cart/page";
 import { useShipping } from "@/app/Context/ShippingContext";
 import { Clock, Truck, Award } from "lucide-react";
 
+interface OptionItem {
+  code?: string;
+  slug?: string;
+  cityName?: string;
+  name?: string;
+}
+
+interface ShippingRate {
+  mode: string;
+  pricingTier: string;
+  cost: number;
+  duration: string;
+}
+
 export default function Payments({
   setProceed,
   register,
@@ -19,8 +33,8 @@ export default function Payments({
   setValue: UseFormSetValue<Inputs>;
   watch: UseFormWatch<Inputs>;
 }) {
-const { countries, states, cities, fetchStates, fetchCities } = useShipping();
-const { shippingRates, selectedRate, setSelectedRate, isLoadingRates } = useShipping();
+  const { countries, states, cities, fetchStates, fetchCities } = useShipping();
+  const { shippingRates, selectedRate, setSelectedRate, isLoadingRates } = useShipping();
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [fetchedCountry, setFetchedCountry] = useState<string | null>(null);
@@ -40,14 +54,13 @@ const { shippingRates, selectedRate, setSelectedRate, isLoadingRates } = useShip
   
   // Memoize fetch functions to prevent unnecessary recreations
   const fetchStatesMemoized = useCallback(async (countryCode: string) => {
-    if (countryCode === fetchedCountry) return; // Skip if already fetched
+    if (countryCode === fetchedCountry) return;
     
     setLoadingStates(true);
     try {
       await fetchStates(countryCode);
       setFetchedCountry(countryCode);
-      setFetchedState(null); // Reset fetched state when country changes
-      // Reset state and city when country changes
+      setFetchedState(null);
       setValue("billingState", "");
       setValue("billingTown", "");
     } finally {
@@ -56,7 +69,7 @@ const { shippingRates, selectedRate, setSelectedRate, isLoadingRates } = useShip
   }, [fetchStates, setValue, fetchedCountry]);
 
   const fetchCitiesMemoized = useCallback(async (countryCode: string, state: string) => {
-    if (state === fetchedState) return; // Skip if already fetched
+    if (state === fetchedState) return;
     
     setLoadingCities(true);
     try {
@@ -67,26 +80,22 @@ const { shippingRates, selectedRate, setSelectedRate, isLoadingRates } = useShip
     }
   }, [fetchCities, fetchedState]);
   
-  // Fetch states when country changes
   useEffect(() => {
     if (watchCountry && watchCountry !== fetchedCountry) {
       fetchStatesMemoized(watchCountry);
     }
   }, [watchCountry, fetchStatesMemoized, fetchedCountry]);
   
-  // Fetch cities when state changes
   useEffect(() => {
     if (watchCountry && watchState && watchState !== fetchedState) {
       fetchCitiesMemoized(watchCountry, watchState);
     }
   }, [watchCountry, watchState, fetchCitiesMemoized, fetchedState]);
   
-  // Helper function to generate unique keys for options
-  const getUniqueKey = (item: any, index: number) => {
-    return `${item.code || item.slug || item.cityName}-${index}`;
+  const getUniqueKey = (item: OptionItem, index: number) => {
+    return `${item.code || item.slug || item.cityName || item.name}-${index}`;
   };
 
-  // Helper function to get shipping icon based on tier
   const getShippingIcon = (tier: string) => {
     switch(tier.toLowerCase()) {
       case 'express':
@@ -100,8 +109,7 @@ const { shippingRates, selectedRate, setSelectedRate, isLoadingRates } = useShip
     }
   };
 
-  // When a shipping rate is selected, update the form value
-  const handleSelectRate = (rate: any) => {
+  const handleSelectRate = (rate: ShippingRate) => {
     setSelectedRate(rate);
     setValue("shippingRateId", `${rate.mode}-${rate.pricingTier}`);
   };
@@ -339,7 +347,6 @@ const { shippingRates, selectedRate, setSelectedRate, isLoadingRates } = useShip
             </div>
           ) : shippingRates.length > 0 ? (
             <div className="space-y-3">
-              {/* Hidden input to store the selected shipping rate ID */}
               <input
                 type="hidden"
                 {...register("shippingRateId")}

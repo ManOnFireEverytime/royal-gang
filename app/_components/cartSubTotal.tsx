@@ -1,7 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import Link from "next/link";
-
-import { FieldErrors, UseFormRegister } from "react-hook-form";
+import { FieldErrors, UseFormRegister, UseFormWatch } from "react-hook-form";
 import { Inputs } from "../cart/page";
 import { ErrorGroup, InputGroup } from "./payments";
 import { CartItems, useCart } from "@/app/Context/CartContext";
@@ -20,7 +19,7 @@ export default function CartSubTotal({
   register: UseFormRegister<Inputs>;
   errors: FieldErrors<Inputs>;
   onCompleteOrder: () => void;
-  watch?: any; // Add watch prop to get form values
+  watch?: UseFormWatch<Inputs>;
 }) {
   const { cartItems } = useCart();
   const { selectedRate } = useShipping();

@@ -21,6 +21,7 @@ function PaymentComplete() {
   const [status, setStatus] = useState("verifying");
   const [message, setMessage] = useState("Verifying your payment...");
   const [orderItems, setOrderItems] = useState([]);
+  console.log(orderItems)
   const [orderDetails, setOrderDetails] = useState<{
     orderId: string;
     reference: string;
@@ -88,7 +89,7 @@ function PaymentComplete() {
               }));
               
               // Prepare shipping data
-              const totalWeight = topshipItems.reduce((acc, item) => acc + (item.weight * item.quantity), 0);
+              // const totalWeight = topshipItems.reduce((acc, item) => acc + (item.weight * item.quantity), 0);
               
               // Calculate VAT (7.5% of total charge)
               const shipmentCharge = Math.round(pendingOrder.shippingRate.cost * 100);
