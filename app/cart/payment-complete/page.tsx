@@ -1,10 +1,38 @@
-// Modify app/cart/payment-complete/page.tsx
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/app/Context/CartContext";
 import Link from "next/link";
+
+interface CartItem {
+  id: string;
+  name: string;
+  price: string | number;
+  quantity: number;
+  // Add other properties as needed
+}
+
+interface PendingOrder {
+  items: CartItem[];
+  shippingRate: {
+    cost: number;
+    pricingTier: string;
+  };
+  shipping: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    address: string;
+    country: string;
+    state: string;
+    city: string;
+    countryCode: string;
+  };
+  total: number;
+  // Add other properties as needed
+}
 
 export default function Page() {
   return (
@@ -20,20 +48,19 @@ function PaymentComplete() {
   const { cartItems, clearCart } = useCart();
   const [status, setStatus] = useState("verifying");
   const [message, setMessage] = useState("Verifying your payment...");
-  const [orderItems, setOrderItems] = useState([]);
-  console.log(orderItems)
+  const [orderItems, setOrderItems] = useState<CartItem[]>([]);
   const [orderDetails, setOrderDetails] = useState<{
     orderId: string;
     reference: string;
     total: number;
-    trackingId?: string; // Added for Topship tracking
+    trackingId?: string;
   } | null>(null);
 
   const reference = searchParams.get("reference");
 
   useEffect(() => {
-    const pendingOrder = JSON.parse(
-      sessionStorage.getItem("pendingOrder") || "{}",
+    const pendingOrder: PendingOrder = JSON.parse(
+      sessionStorage.getItem("pendingOrder") || "{}"
     );
     setOrderItems(pendingOrder.items || [...cartItems]);
 
@@ -51,7 +78,7 @@ function PaymentComplete() {
     const verifyPayment = async () => {
       try {
         const verifyResponse = await fetch(
-          `/api/verify-paystack?reference=${reference}`,
+          `/api/verify-paystack?reference=${reference}`
         );
         const verifyData = await verifyResponse.json();
         console.log("Paystack Verification Response:", verifyData);
@@ -70,7 +97,7 @@ function PaymentComplete() {
                 paymentReference: reference,
                 paymentStatus: "paid",
               }),
-            },
+            }
           );
 
           const orderData = await orderResponse.json();
@@ -79,19 +106,15 @@ function PaymentComplete() {
           if (orderData.success) {
             // Now create Topship shipment
             try {
-              // Map cart items to Topship format
-              const topshipItems = pendingOrder.items.map(item => ({
-                category: "ClothingAndTextile", // Default category - adjust as needed
+              // Map cart items to Topship format with proper typing
+              const topshipItems = pendingOrder.items.map((item: CartItem) => ({
+                category: "ClothingAndTextile",
                 description: item.name,
-                weight: 0.5, // Default weight
+                weight: 0.5,
                 quantity: item.quantity,
                 value: Number(item.price),
               }));
               
-              // Prepare shipping data
-              // const totalWeight = topshipItems.reduce((acc, item) => acc + (item.weight * item.quantity), 0);
-              
-              // Calculate VAT (7.5% of total charge)
               const shipmentCharge = Math.round(pendingOrder.shippingRate.cost * 100);
               const totalCharge = shipmentCharge;
               const valueAddedTaxCharge = Math.round(totalCharge * 0.075);
@@ -112,7 +135,7 @@ function PaymentComplete() {
                     senderDetail: {
                       name: "Royal Gang Chambers",
                       email: "manonfireeverytime@gmail.com",
-                      phoneNumber: "09099346124", // Replace with your phone number
+                      phoneNumber: "09099346124",
                       addressLine1: "268, Herbert Macauly way",
                       addressLine2: "",
                       addressLine3: "",
@@ -139,7 +162,6 @@ function PaymentComplete() {
                 ]
               };
               
-              // Book shipment
               const shipmentResponse = await fetch('/api/topship/book-shipment', {
                 method: 'POST',
                 headers: {
@@ -158,45 +180,33 @@ function PaymentComplete() {
                   total: pendingOrder.total,
                   trackingId: shipmentData.trackingId
                 });
-                
-                // Update the message to include shipping info
                 setMessage("Your order is completed and your shipment has been booked!");
               } else {
-                // If Topship booking fails, still consider order successful
                 setOrderDetails({
                   orderId: orderData.order_id,
                   reference,
                   total: pendingOrder.total
                 });
-                
-                // Update message to indicate shipping issue
-                setMessage("Your order is completed, but there was an issue with booking your shipment. Our team will process it manually.");
+                setMessage("Your order is completed, but there was an issue with booking your shipment.");
               }
             } catch (shipmentError) {
               console.error("Error booking shipment:", shipmentError);
-              // If Topship booking errors, still consider order successful
               setOrderDetails({
                 orderId: orderData.order_id,
                 reference,
                 total: pendingOrder.total
               });
-              
-              // Update message to indicate shipping issue
-              setMessage("Your order is completed, but there was an error booking your shipment. Our team will process it manually.");
+              setMessage("Your order is completed, but there was an error booking your shipment.");
             }
             
             setStatus("success");
-            
-            // Clear cart after successful order
             clearCart();
             sessionStorage.removeItem("pendingOrder");
           } else {
-            console.log("Order submission failed. Updating state to 'warning'.");
             setStatus("warning");
-            setMessage("Payment successful, but we could not process your order. Our team will contact you shortly.");
+            setMessage("Payment successful, but we could not process your order.");
           }
         } else {
-          console.error("Payment verification failed.");
           setStatus("failed");
           setMessage("Payment verification failed. Please contact support.");
         }
@@ -217,37 +227,25 @@ function PaymentComplete() {
       <div className="mx-auto max-w-xl rounded-lg bg-white p-8 shadow-md">
         {status === "verifying" && (
           <div className="text-center">
-            <h1 className="mb-4 text-2xl font-bold">
-              Verifying your payment...
-            </h1>
+            <h1 className="mb-4 text-2xl font-bold">Verifying your payment...</h1>
             <p>Please wait while we confirm your transaction.</p>
           </div>
         )}
 
         {status === "success" && (
           <div className="text-center">
-            <h1 className="mb-4 text-2xl font-bold text-green-600">
-              Payment Successful!
-            </h1>
+            <h1 className="mb-4 text-2xl font-bold text-green-600">Payment Successful!</h1>
             <p className="mb-4">{message}</p>
 
             {orderDetails && (
               <div className="mt-6 text-left">
                 <h2 className="mb-2 text-xl font-semibold">Order Summary</h2>
-                <p className="mb-1 text-gray-600">
-                  Order ID: {orderDetails.orderId}
-                </p>
-                <p className="mb-1 text-gray-600">
-                  Reference: {orderDetails.reference}
-                </p>
+                <p className="mb-1 text-gray-600">Order ID: {orderDetails.orderId}</p>
+                <p className="mb-1 text-gray-600">Reference: {orderDetails.reference}</p>
                 {orderDetails.trackingId && (
-                  <p className="mb-1 text-gray-600">
-                    Shipping Tracking ID: {orderDetails.trackingId}
-                  </p>
+                  <p className="mb-1 text-gray-600">Shipping Tracking ID: {orderDetails.trackingId}</p>
                 )}
-                <p className="mb-4 text-gray-600">
-                  Total Amount: ₦{orderDetails.total?.toLocaleString()}
-                </p>
+                <p className="mb-4 text-gray-600">Total Amount: ₦{orderDetails.total?.toLocaleString()}</p>
 
                 <Link
                   href="/"
@@ -262,9 +260,7 @@ function PaymentComplete() {
 
         {status === "warning" && (
           <div className="text-center">
-            <h1 className="mb-4 text-2xl font-bold text-yellow-600">
-              Payment Processed
-            </h1>
+            <h1 className="mb-4 text-2xl font-bold text-yellow-600">Payment Processed</h1>
             <p className="mb-4">{message}</p>
             <Link
               href="/"
@@ -277,9 +273,7 @@ function PaymentComplete() {
 
         {status === "failed" && (
           <div className="text-center">
-            <h1 className="mb-4 text-2xl font-bold text-red-600">
-              Payment Failed
-            </h1>
+            <h1 className="mb-4 text-2xl font-bold text-red-600">Payment Failed</h1>
             <p className="mb-4">{message}</p>
             <Link
               href="/cart"
