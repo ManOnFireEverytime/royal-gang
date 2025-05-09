@@ -18,6 +18,7 @@ interface ShippingRate {
   pricingTier: string;
   cost: number;
   duration: string;
+  currency: string;
 }
 
 export default function Payments({
