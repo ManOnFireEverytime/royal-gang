@@ -1,3 +1,4 @@
+// Modify app/cart/payment-complete/page.tsx
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
@@ -24,9 +25,8 @@ function PaymentComplete() {
     orderId: string;
     reference: string;
     total: number;
+    trackingId?: string; // Added for Topship tracking
   } | null>(null);
-
-  console.log(orderItems);
 
   const reference = searchParams.get("reference");
 
@@ -56,6 +56,7 @@ function PaymentComplete() {
         console.log("Paystack Verification Response:", verifyData);
 
         if (verifyData.status && verifyData.data.status === "success") {
+          // First create database order
           const orderResponse = await fetch(
             "https://backend.royalgangchambers.com/create-order.php",
             {
@@ -75,28 +76,123 @@ function PaymentComplete() {
           console.log("Order Submission Response:", orderData);
 
           if (orderData.success) {
-            console.log("Order successful. Updating state to 'success'.");
+            // Now create Topship shipment
+            try {
+              // Map cart items to Topship format
+              const topshipItems = pendingOrder.items.map(item => ({
+                category: "ClothingAndTextile", // Default category - adjust as needed
+                description: item.name,
+                weight: 0.5, // Default weight
+                quantity: item.quantity,
+                value: Number(item.price),
+              }));
+              
+              // Prepare shipping data
+              const totalWeight = topshipItems.reduce((acc, item) => acc + (item.weight * item.quantity), 0);
+              
+              // Calculate VAT (7.5% of total charge)
+              const shipmentCharge = Math.round(pendingOrder.shippingRate.cost * 100);
+              const totalCharge = shipmentCharge;
+              const valueAddedTaxCharge = Math.round(totalCharge * 0.075);
+              
+              const topshipPayload = {
+                shipment: [
+                  {
+                    items: topshipItems,
+                    itemCollectionMode: "DropOff",
+                    pricingTier: pendingOrder.shippingRate.pricingTier,
+                    insuranceType: "None",
+                    insuranceCharge: 0,
+                    discount: 0,
+                    shipmentRoute: pendingOrder.shipping.countryCode === "NG" ? "Domestic" : "Export",
+                    shipmentCharge: shipmentCharge,
+                    pickupCharge: 0,
+                    valueAddedTaxCharge: valueAddedTaxCharge,
+                    senderDetail: {
+                      name: "Royal Gang Chambers",
+                      email: "manonfireeverytime@gmail.com",
+                      phoneNumber: "09099346124", // Replace with your phone number
+                      addressLine1: "268, Herbert Macauly way",
+                      addressLine2: "",
+                      addressLine3: "",
+                      country: "Nigeria",
+                      state: "Lagos",
+                      city: "Yaba",
+                      countryCode: "NG",
+                      postalCode: ""
+                    },
+                    receiverDetail: {
+                      name: `${pendingOrder.shipping.firstName} ${pendingOrder.shipping.lastName}`,
+                      email: pendingOrder.shipping.email,
+                      phoneNumber: pendingOrder.shipping.phoneNumber,
+                      addressLine1: pendingOrder.shipping.address,
+                      addressLine2: "",
+                      addressLine3: "",
+                      country: pendingOrder.shipping.country,
+                      state: pendingOrder.shipping.state,
+                      city: pendingOrder.shipping.city,
+                      countryCode: pendingOrder.shipping.countryCode,
+                      postalCode: ""
+                    }
+                  }
+                ]
+              };
+              
+              // Book shipment
+              const shipmentResponse = await fetch('/api/topship/book-shipment', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(topshipPayload)
+              });
+              
+              const shipmentData = await shipmentResponse.json();
+              console.log("Topship Booking Response:", shipmentData);
+              
+              if (shipmentData.trackingId) {
+                setOrderDetails({
+                  orderId: orderData.order_id,
+                  reference,
+                  total: pendingOrder.total,
+                  trackingId: shipmentData.trackingId
+                });
+                
+                // Update the message to include shipping info
+                setMessage("Your order is completed and your shipment has been booked!");
+              } else {
+                // If Topship booking fails, still consider order successful
+                setOrderDetails({
+                  orderId: orderData.order_id,
+                  reference,
+                  total: pendingOrder.total
+                });
+                
+                // Update message to indicate shipping issue
+                setMessage("Your order is completed, but there was an issue with booking your shipment. Our team will process it manually.");
+              }
+            } catch (shipmentError) {
+              console.error("Error booking shipment:", shipmentError);
+              // If Topship booking errors, still consider order successful
+              setOrderDetails({
+                orderId: orderData.order_id,
+                reference,
+                total: pendingOrder.total
+              });
+              
+              // Update message to indicate shipping issue
+              setMessage("Your order is completed, but there was an error booking your shipment. Our team will process it manually.");
+            }
+            
             setStatus("success");
-            setMessage(
-              "Your order is completed and it is on the way for delivery!",
-            );
-            setOrderDetails({
-              orderId: orderData.order_id,
-              reference,
-              ...pendingOrder,
-            });
-
+            
             // Clear cart after successful order
             clearCart();
             sessionStorage.removeItem("pendingOrder");
           } else {
-            console.log(
-              "Order submission failed. Updating state to 'warning'.",
-            );
+            console.log("Order submission failed. Updating state to 'warning'.");
             setStatus("warning");
-            setMessage(
-              "Payment successful, but we could not process your order. Our team will contact you shortly.",
-            );
+            setMessage("Payment successful, but we could not process your order. Our team will contact you shortly.");
           }
         } else {
           console.error("Payment verification failed.");
@@ -143,6 +239,11 @@ function PaymentComplete() {
                 <p className="mb-1 text-gray-600">
                   Reference: {orderDetails.reference}
                 </p>
+                {orderDetails.trackingId && (
+                  <p className="mb-1 text-gray-600">
+                    Shipping Tracking ID: {orderDetails.trackingId}
+                  </p>
+                )}
                 <p className="mb-4 text-gray-600">
                   Total Amount: ₦{orderDetails.total?.toLocaleString()}
                 </p>

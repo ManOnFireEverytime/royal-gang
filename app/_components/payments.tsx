@@ -1,25 +1,115 @@
 "use client";
 
-import { Dispatch, ReactNode, SetStateAction } from "react";
-
-import { FieldErrors, UseFormRegister } from "react-hook-form";
-
+import { Dispatch, ReactNode, SetStateAction, useEffect, useState, useCallback } from "react";
+import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { Inputs } from "../cart/page";
+import { useShipping } from "@/app/Context/ShippingContext";
+import { Clock, Truck, Award } from "lucide-react";
 
 export default function Payments({
   setProceed,
   register,
   errors,
+  setValue,
+  watch,
 }: {
   setProceed: Dispatch<SetStateAction<boolean>>;
   register: UseFormRegister<Inputs>;
   errors: FieldErrors<Inputs>;
+  setValue: UseFormSetValue<Inputs>;
+  watch: UseFormWatch<Inputs>;
 }) {
+const { countries, states, cities, fetchStates, fetchCities } = useShipping();
+const { shippingRates, selectedRate, setSelectedRate, isLoadingRates } = useShipping();
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [fetchedCountry, setFetchedCountry] = useState<string | null>(null);
+  const [fetchedState, setFetchedState] = useState<string | null>(null);
+  
+  // Sort countries and cities alphabetically
+  const sortedCountries = [...countries].sort((a, b) => 
+    a.name.localeCompare(b.name)
+  );
+  
+  const sortedCities = [...cities].sort((a, b) => 
+    a.cityName.localeCompare(b.cityName)
+  );
+  
+  const watchCountry = watch("billingCountryCode");
+  const watchState = watch("billingState");
+  
+  // Memoize fetch functions to prevent unnecessary recreations
+  const fetchStatesMemoized = useCallback(async (countryCode: string) => {
+    if (countryCode === fetchedCountry) return; // Skip if already fetched
+    
+    setLoadingStates(true);
+    try {
+      await fetchStates(countryCode);
+      setFetchedCountry(countryCode);
+      setFetchedState(null); // Reset fetched state when country changes
+      // Reset state and city when country changes
+      setValue("billingState", "");
+      setValue("billingTown", "");
+    } finally {
+      setLoadingStates(false);
+    }
+  }, [fetchStates, setValue, fetchedCountry]);
+
+  const fetchCitiesMemoized = useCallback(async (countryCode: string, state: string) => {
+    if (state === fetchedState) return; // Skip if already fetched
+    
+    setLoadingCities(true);
+    try {
+      await fetchCities(countryCode);
+      setFetchedState(state);
+    } finally {
+      setLoadingCities(false);
+    }
+  }, [fetchCities, fetchedState]);
+  
+  // Fetch states when country changes
+  useEffect(() => {
+    if (watchCountry && watchCountry !== fetchedCountry) {
+      fetchStatesMemoized(watchCountry);
+    }
+  }, [watchCountry, fetchStatesMemoized, fetchedCountry]);
+  
+  // Fetch cities when state changes
+  useEffect(() => {
+    if (watchCountry && watchState && watchState !== fetchedState) {
+      fetchCitiesMemoized(watchCountry, watchState);
+    }
+  }, [watchCountry, watchState, fetchCitiesMemoized, fetchedState]);
+  
+  // Helper function to generate unique keys for options
+  const getUniqueKey = (item: any, index: number) => {
+    return `${item.code || item.slug || item.cityName}-${index}`;
+  };
+
+  // Helper function to get shipping icon based on tier
+  const getShippingIcon = (tier: string) => {
+    switch(tier.toLowerCase()) {
+      case 'express':
+        return <Clock className="h-5 w-5 text-blue-600" />;
+      case 'standard':
+        return <Truck className="h-5 w-5 text-green-600" />;
+      case 'budget':
+        return <Award className="h-5 w-5 text-amber-600" />;
+      default:
+        return <Truck className="h-5 w-5" />;
+    }
+  };
+
+  // When a shipping rate is selected, update the form value
+  const handleSelectRate = (rate: any) => {
+    setSelectedRate(rate);
+    setValue("shippingRateId", `${rate.mode}-${rate.pricingTier}`);
+  };
+
   return (
     <div className="flex w-full flex-col space-y-4">
       <div className="space-y-0.5">
         <h1 className="text-lg font-bold">Payment</h1>
-
         <p className="text-sm">All transactions are secure and encrypted.</p>
       </div>
 
@@ -88,21 +178,34 @@ export default function Payments({
 
             <div className="grid items-end gap-4 lg:grid-cols-3">
               <InputGroup>
-                {errors?.billingTown ? (
-                  <ErrorGroup>{errors.billingTown.message}</ErrorGroup>
+                {errors?.billingCountryCode ? (
+                  <ErrorGroup>{errors.billingCountryCode.message}</ErrorGroup>
                 ) : null}
 
-                <input
-                  type="text"
-                  placeholder="Town/City"
+                <select
                   className="rounded border border-gray-300 p-2"
-                  {...register("billingTown", {
+                  {...register("billingCountryCode", {
                     required: {
                       value: true,
                       message: "Required",
                     },
+                    onChange: (e) => {
+                      const selectedCountry = sortedCountries.find(
+                        (country) => country.code === e.target.value
+                      );
+                      if (selectedCountry) {
+                        setValue("billingCountry", selectedCountry.name);
+                      }
+                    },
                   })}
-                />
+                >
+                  <option value="">Select Country</option>
+                  {sortedCountries.map((country, index) => (
+                    <option key={getUniqueKey(country, index)} value={country.code}>
+                      {country.name}
+                    </option>
+                  ))}
+                </select>
               </InputGroup>
 
               <InputGroup>
@@ -110,47 +213,55 @@ export default function Payments({
                   <ErrorGroup>{errors.billingState.message}</ErrorGroup>
                 ) : null}
 
-                <input
-                  type="text"
-                  placeholder="State"
-                  onInput={(e) => {
-                    e.currentTarget.value = e.currentTarget.value.replace(
-                      /[^a-zA-Z]/g,
-                      "",
-                    );
-                  }}
-                  className="rounded border border-gray-300 p-2"
-                  {...register("billingState", {
-                    required: {
-                      value: true,
-                      message: "Required",
-                    },
-                  })}
-                />
+                {loadingStates ? (
+                  <p className="rounded border border-gray-300 p-2 text-gray-500">Loading states...</p>
+                ) : (
+                  <select
+                    className="rounded border border-gray-300 p-2"
+                    disabled={!watchCountry || loadingStates}
+                    {...register("billingState", {
+                      required: {
+                        value: true,
+                        message: "Required",
+                      },
+                    })}
+                  >
+                    <option value="">Select State</option>
+                    {states.map((state, index) => (
+                      <option key={getUniqueKey(state, index)} value={state.name}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </InputGroup>
 
               <InputGroup>
-                {errors?.billingCountry ? (
-                  <ErrorGroup>{errors.billingCountry.message}</ErrorGroup>
+                {errors?.billingTown ? (
+                  <ErrorGroup>{errors.billingTown.message}</ErrorGroup>
                 ) : null}
 
-                <input
-                  type="text"
-                  placeholder="Country"
-                  onInput={(e) => {
-                    e.currentTarget.value = e.currentTarget.value.replace(
-                      /[^a-zA-Z]/g,
-                      "",
-                    );
-                  }}
-                  className="rounded border border-gray-300 p-2"
-                  {...register("billingCountry", {
-                    required: {
-                      value: true,
-                      message: "Required",
-                    },
-                  })}
-                />
+                {loadingCities ? (
+                  <p className="rounded border border-gray-300 p-2 text-gray-500">Loading cities...</p>
+                ) : (
+                  <select
+                    className="rounded border border-gray-300 p-2"
+                    disabled={!watchState || loadingCities}
+                    {...register("billingTown", {
+                      required: {
+                        value: true,
+                        message: "Required",
+                      },
+                    })}
+                  >
+                    <option value="">Select City</option>
+                    {sortedCities.map((city, index) => (
+                      <option key={getUniqueKey(city, index)} value={city.cityName}>
+                        {city.cityName} {city.suburbName ? `(${city.suburbName})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </InputGroup>
             </div>
 
@@ -217,6 +328,53 @@ export default function Payments({
               </label>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6 border border-gray-200 p-4">
+          <h2 className="mb-4 font-medium">Shipping Options</h2>
+          {isLoadingRates ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+              <p className="ml-2">Loading shipping options...</p>
+            </div>
+          ) : shippingRates.length > 0 ? (
+            <div className="space-y-3">
+              {/* Hidden input to store the selected shipping rate ID */}
+              <input
+                type="hidden"
+                {...register("shippingRateId")}
+              />
+              
+              {shippingRates.map((rate) => (
+                <div 
+                  key={`${rate.mode}-${rate.pricingTier}`}
+                  className={`flex cursor-pointer items-center justify-between rounded border p-3 transition-colors ${
+                    selectedRate?.mode === rate.mode && selectedRate?.pricingTier === rate.pricingTier
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                  onClick={() => handleSelectRate(rate)}
+                >
+                  <div className="flex items-center">
+                    <div className="mr-3">
+                      {getShippingIcon(rate.pricingTier)}
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{rate.mode} - {rate.pricingTier}</h3>
+                      <p className="text-sm text-gray-600">{rate.duration}</p>
+                    </div>
+                  </div>
+                  <p className="font-medium">
+                    ₦{rate.cost.toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-md bg-amber-50 p-4">
+              <p className="text-amber-800">No shipping options available for this location. Please check your address details.</p>
+            </div>
+          )}
         </div>
 
         <div className="mt-6">

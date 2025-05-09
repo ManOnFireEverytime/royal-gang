@@ -1,11 +1,9 @@
+// Modify app/cart/page.tsx
 "use client";
 
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
 import { useForm } from "react-hook-form";
-
 import { ArrowLeft } from "lucide-react";
 
 import Payments from "../_components/payments";
@@ -13,6 +11,7 @@ import CartSubTotal from "../_components/cartSubTotal";
 import CartOverview from "../_components/cartOverview";
 
 import { CartItems, useCart } from "@/app/Context/CartContext";
+import { useShipping } from "@/app/Context/ShippingContext";
 
 export type Inputs = {
   cardNumber: string;
@@ -25,12 +24,14 @@ export type Inputs = {
   billingPhone: string;
   billingState: string;
   billingCountry: string;
+  billingCountryCode: string;
   billingAddress: string;
   billingLastName: string;
   billingFirstName: string;
   termsAndConditions: true;
 
   rememberMe: boolean;
+  shippingRateId: string;
 };
 
 export default function CartPage() {
@@ -41,26 +42,71 @@ export default function CartPage() {
 
   // Using the cartItems from useCart hook
   const { cartItems } = useCart();
+  const { fetchShippingRates, shippingRates, selectedRate } = useShipping();
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<Inputs>();
+
+  // Watch for billing details changes to calculate shipping
+  const watchBillingCountryCode = watch("billingCountryCode");
+  const watchBillingTown = watch("billingTown");
 
   function goBack() {
     router.back();
   }
 
+  // Calculate total weight of items
+  const calculateTotalWeight = (items: CartItems[]) => {
+    // Assuming each item has a default weight of 0.5kg if not specified
+    return items.reduce((acc, item) => acc + 0.5 * item.quantity, 0);
+  };
+
+const [fetchedLocation, setFetchedLocation] = useState<{
+  countryCode: string;
+  cityName: string;
+} | null>(null);
+
+// Then replace your current useEffect with this one:
+useEffect(() => {
+  if (
+    proceedToCheckout &&
+    watchBillingCountryCode &&
+    watchBillingTown &&
+    // Only fetch if the location changed or we haven't fetched yet
+    (!fetchedLocation ||
+      fetchedLocation.countryCode !== watchBillingCountryCode ||
+      fetchedLocation.cityName !== watchBillingTown)
+  ) {
+    // Record that we're fetching for this location
+    setFetchedLocation({
+      countryCode: watchBillingCountryCode,
+      cityName: watchBillingTown,
+    });
+    
+    fetchShippingRates(
+      {
+        cityName: watchBillingTown,
+        countryCode: watchBillingCountryCode,
+      },
+      calculateTotalWeight(cartItems)
+    );
+  }
+}, [proceedToCheckout, watchBillingCountryCode, watchBillingTown, cartItems, fetchShippingRates, fetchedLocation]);
+
   // Calculate totals using cartItems
   const calculateSubtotal = (items: CartItems[]) =>
     items.reduce((acc, item) => acc + Number(item.price) * item.quantity, 0);
 
-  const deliveryFee = 20500;
   const subtotal = calculateSubtotal(cartItems);
-  const total = subtotal + deliveryFee;
+  const shippingCost = selectedRate ? selectedRate.cost : 0;
+  const total = subtotal + shippingCost;
 
-  // Initialize Paystack payment
+  // Initialize Paystack payment and create Topship shipment
   const initializePayment = async (formData: Inputs) => {
     if (isProcessing || cartItems.length === 0) return;
 
@@ -81,13 +127,15 @@ export default function CartPage() {
           city: formData.billingTown,
           state: formData.billingState,
           country: formData.billingCountry,
+          countryCode: formData.billingCountryCode,
           phoneNumber: formData.billingPhone,
           email: formData.billingEmail,
           rememberMe: formData.rememberMe,
         },
         subtotal,
-        deliveryFee,
+        deliveryFee: shippingCost,
         total,
+        shippingRate: selectedRate,
       };
 
       // Store order data in session storage for retrieval after payment
@@ -132,8 +180,6 @@ export default function CartPage() {
     }
   }
 
-  console.log(errors);
-
   return (
     <main className="flex h-dvh flex-col space-y-3 bg-background px-4 pb-10 pt-20 lg:space-y-6 lg:overflow-hidden lg:px-10">
       <button
@@ -155,6 +201,8 @@ export default function CartPage() {
               setProceed={setProceedToCheckout}
               register={register}
               errors={errors}
+              setValue={setValue}
+              watch={watch}
             />
           </>
         ) : (
@@ -164,12 +212,13 @@ export default function CartPage() {
         <div className="h-[1px] w-full bg-muted lg:hidden"></div>
 
         <CartSubTotal
-          proceed={proceedToCheckout}
-          setProceed={setProceedToCheckout}
-          register={register}
-          errors={errors}
-          onCompleteOrder={function () {}} //TODO: CHANGE THIS
-        />
+  proceed={proceedToCheckout}
+  setProceed={setProceedToCheckout}
+  register={register}
+  errors={errors}
+  onCompleteOrder={function () {}} //No-op as handleSubmit will handle this
+  watch={watch} // Pass the watch function to CartSubTotal
+/>
       </form>
 
       {isProcessing && (
