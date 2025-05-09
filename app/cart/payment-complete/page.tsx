@@ -49,6 +49,7 @@ function PaymentComplete() {
   const [status, setStatus] = useState("verifying");
   const [message, setMessage] = useState("Verifying your payment...");
   const [orderItems, setOrderItems] = useState<CartItem[]>([]);
+  console.log(orderItems)
   const [orderDetails, setOrderDetails] = useState<{
     orderId: string;
     reference: string;
