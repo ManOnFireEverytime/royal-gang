@@ -95,7 +95,7 @@ function PaymentComplete() {
             );
             setStatus("warning");
             setMessage(
-              "Payment successful, but we could not process your order. Our team will contact you shortly.",
+              "Payment successful, Delivery fees will be communicated via email. Our team will contact you shortly.",
             );
           }
         } else {
