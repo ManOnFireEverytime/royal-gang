@@ -62,6 +62,7 @@ export default function Page() {
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [cartMessage, setCartMessage] = useState("");
+  const [selectedImage, setSelectedImage] = useState(1);
 
   // Event handlers
   const decreaseQuantity = () => {
@@ -119,6 +120,15 @@ export default function Page() {
     }, 3000);
   };
 
+  const getImageSrc = (imageNumber: number) => {
+    if (!products) return tshirtBack;
+    
+    const imageKey = `image${imageNumber}` as keyof Product;
+    const imagePath = products.product[imageKey];
+    
+    return imagePath ? `${backendBaseUrl}${imagePath}` : tshirtBack;
+  };
+
   return (
     <PageWrapper>
       {status === "pending" && (
@@ -130,28 +140,47 @@ export default function Page() {
       {status === "success" && (
         <>
           <div className="flex flex-col items-center gap-y-8 pb-20 lg:flex-row">
-            <div className="scrollbar flex w-full snap-x snap-mandatory overflow-auto lg:basis-1/2 lg:flex-col">
-              {/* Product Images */}
-              <div className="relative h-[500px] w-full flex-shrink-0 snap-start">
+            <div className="flex w-full flex-col gap-4 lg:basis-1/2">
+              {/* Main Product Image */}
+              <div className="relative h-[500px] w-full">
                 <Image
-                  src={`${backendBaseUrl}${products.product.image1}`}
+                  src={getImageSrc(selectedImage)}
                   fill
-                  alt="front view"
+                  alt="product view"
                   className="object-contain"
                 />
               </div>
 
-              <div className="relative h-[500px] w-full flex-shrink-0 snap-start">
-                <Image
-                  src={
-                    products.product.image2
-                      ? `${backendBaseUrl}${products.product.image2}`
-                      : tshirtBack
-                  }
-                  fill
-                  alt="back view"
-                  className="object-contain"
-                />
+              {/* Thumbnail Images - Horizontal */}
+              <div className="scrollbar flex gap-2 overflow-auto lg:gap-4">
+                {[1, 2, 3, 4, 5].map((imageNum) => {
+                  const imageSrc = getImageSrc(imageNum);
+                  const imageKey = `image${imageNum}` as keyof Product;
+                  const hasImage = products.product[imageKey];
+                  
+                  // Only show thumbnail if image exists
+                  if (!hasImage && imageNum !== 1) return null;
+                  
+                  return (
+                    <button
+                      key={imageNum}
+                      type="button"
+                      onClick={() => setSelectedImage(imageNum)}
+                      className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border-2 transition-all lg:h-24 lg:w-24 ${
+                        selectedImage === imageNum
+                          ? "border-saddleBrown"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <Image
+                        src={imageSrc}
+                        fill
+                        alt={`product view ${imageNum}`}
+                        className="object-cover"
+                      />
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

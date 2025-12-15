@@ -54,7 +54,7 @@ export default function CartSubTotal({
             <div className="flex justify-between">
               <h3 className="tracking-wide text-customGrey">Delivery Fees:</h3>
 
-              <p>To be communicated on Order Confirmation</p>
+              <p>To be communicated on Order Confirmation via email</p>
             </div>
 
           </div>
