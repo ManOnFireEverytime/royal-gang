@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "backend.royalgangchambers.com",
+        hostname: "backend.royalgangchamber.com",
         pathname: "/products/**", // Adjust the path to match your image URLs
       },
     ],

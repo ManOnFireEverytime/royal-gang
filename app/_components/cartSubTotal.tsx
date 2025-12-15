@@ -1,10 +1,11 @@
 import { Dispatch, SetStateAction } from "react";
 import Link from "next/link";
-import { FieldErrors, UseFormRegister, UseFormWatch } from "react-hook-form";
+
+import { FieldErrors, UseFormRegister } from "react-hook-form";
 import { Inputs } from "../cart/page";
 import { ErrorGroup, InputGroup } from "./payments";
 import { CartItems, useCart } from "@/app/Context/CartContext";
-import { useShipping } from "@/app/Context/ShippingContext";
+// import { useRouter } from "next/navigation";
 
 export default function CartSubTotal({
   proceed,
@@ -12,44 +13,26 @@ export default function CartSubTotal({
   register,
   errors,
   onCompleteOrder,
-  watch,
 }: {
   proceed: boolean;
   setProceed: Dispatch<SetStateAction<boolean>>;
   register: UseFormRegister<Inputs>;
   errors: FieldErrors<Inputs>;
   onCompleteOrder: () => void;
-  watch?: UseFormWatch<Inputs>;
 }) {
+  // const router = useRouter();
   const { cartItems } = useCart();
-  const { selectedRate } = useShipping();
-  
-  // Get the city from form values if watch is provided
-  const selectedCity = watch ? watch("billingTown") : "";
-  const selectedCountry = watch ? watch("billingCountry") : "";
 
   const calculateSubtotal = (items: CartItems[]) =>
     items.reduce((acc, item) => acc + Number(item.price) * item.quantity, 0);
 
-  // Use the selected shipping rate or default to 0
-  const deliveryFee = selectedRate ? selectedRate.cost : 0;
+  const deliveryFee = 0;
   const subtotal = calculateSubtotal(cartItems);
   const total = subtotal + deliveryFee;
 
   function handleProceed() {
     setProceed(true);
   }
-
-  // Function to get delivery location based on selected city
-  const getDeliveryLocation = () => {
-    if (selectedCity && selectedCountry) {
-      return `${selectedCity}, ${selectedCountry}`;
-    } else if (selectedCity) {
-      return selectedCity;
-    } else {
-      return "Not selected";
-    }
-  };
 
   return (
     <div className="basis-[40%] lg:px-6">
@@ -71,26 +54,9 @@ export default function CartSubTotal({
             <div className="flex justify-between">
               <h3 className="tracking-wide text-customGrey">Delivery Fees:</h3>
 
-              <p>₦{deliveryFee.toLocaleString()}</p>
+              <p>To be communicated on Order Confirmation</p>
             </div>
 
-            <div className="flex justify-between">
-              <h3 className="tracking-wide text-customGrey">
-                Delivery Location:
-              </h3>
-
-              <p>{getDeliveryLocation()}</p>
-            </div>
-
-            {selectedRate && (
-              <div className="flex justify-between">
-                <h3 className="tracking-wide text-customGrey">
-                  Shipping Method:
-                </h3>
-
-                <p>{selectedRate.mode} - {selectedRate.pricingTier}</p>
-              </div>
-            )}
           </div>
         </div>
 

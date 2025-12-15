@@ -18,7 +18,7 @@ import { Product } from "@/app/_types/product";
 
 import tshirtBack from "../../../public/embrace.webp";
 
-const backendBaseUrl = "https://backend.royalgangchambers.com/products/";
+const backendBaseUrl = "https://backend.royalgangchamber.com/products/";
 
 export default function Page() {
   const params = useParams();
@@ -33,9 +33,9 @@ export default function Page() {
     }> {
       const [productReq, similarProductsReq] = await Promise.all([
         fetch(
-          `https://backend.royalgangchambers.com/getProductById.php?id=${productId}`,
+          `https://backend.royalgangchamber.com/getProductById.php?id=${productId}`,
         ),
-        fetch(`https://backend.royalgangchambers.com/getNewProducts.php`),
+        fetch(`https://backend.royalgangchamber.com/getNewProducts.php`),
       ]);
 
       if (!productReq.ok || !similarProductsReq.ok) {

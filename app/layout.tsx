@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CartProvider } from "@/app/Context/CartContext";
-import { ShippingProvider } from '@/app/Context/ShippingContext';
+
 import "./globals.css";
 import Navbar from "./_components/Navbar";
 import localFont from "next/font/local";
@@ -50,9 +50,7 @@ export default function RootLayout({
       >
         <QueryProvider>
           <Navbar />
-          <CartProvider><ShippingProvider>
-            {children}
-          </ShippingProvider></CartProvider>
+          <CartProvider>{children}</CartProvider>
           {footers}
         </QueryProvider>
       </body>

@@ -53,7 +53,7 @@ const CartOverView = memo(function CartOverview({
             >
               <div className="relative h-20 w-20 bg-muted">
                 <Image
-                  src={`https://backend.royalgangchambers.com/products/${item.image}`}
+                  src={`https://backend.royalgangchamber.com/products/${item.image}`}
                   alt={item.name}
                   fill
                   className="object-cover"

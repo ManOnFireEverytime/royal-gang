@@ -27,7 +27,7 @@ export default function Home() {
 
     queryFn: async function (): Promise<Product[]> {
       const response = await fetch(
-        "https://backend.royalgangchambers.com/getNewProducts.php",
+        "https://backend.royalgangchamber.com/getNewProducts.php",
       );
 
       if (!response.ok) {

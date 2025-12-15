@@ -14,7 +14,7 @@ export default function Card({
 }) {
   const router = useRouter();
 
-  const backendBaseUrl = "https://backend.royalgangchambers.com/products/";
+  const backendBaseUrl = "https://backend.royalgangchamber.com/products/";
 
   function handleRoute() {
     router.push(`/view/${productInfo.id}`);
