@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
         pathname: "/products/**", // Adjust the path to match your image URLs
       },
     ],
+    qualities: [100, 75],
   },
 };
 
