@@ -5,20 +5,20 @@ import PageWrapper from "../_components/PageWrapper";
 export default function Page() {
   return (
     <PageWrapper>
-      <div className="flex h-dvh flex-col space-y-10 overflow-auto py-5">
+      <div className="space-y-10 py-5">
         <div className="space-y-8">
           <h2 className="text-center text-4xl font-bold uppercase text-saddleBrown">
             CONTACT US
           </h2>
 
           <p className="mx-auto mt-2 max-w-xl text-center">
-            Share information about your brand with your customers. Describe a
-            product, make announcements, or welcome customers to your store.
+            For sizing guidance, order support, or general enquiries reach out
+            below. Our Team will respond within 24–48 hours.
           </p>
         </div>
 
         <form className="mx-auto w-full flex-grow space-y-6 px-4 lg:w-1/2">
-          <div className="flex gap-x-6">
+          <div className="flex flex-col gap-x-4 gap-y-4 md:flex-row">
             <input
               className="flex-grow border px-2 py-4 outline-none"
               placeholder="Name"
