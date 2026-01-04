@@ -138,48 +138,18 @@ export default function Navbar() {
               </li>
             </ul>
 
-            <ul className="space-y-4">
-              <li>
-                <Link href={"/shopall"}>Collections</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Fall24</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>DSIN X New Era</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Summer 24</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Pre Summer 24</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Spring 24</Link>
-              </li>
-            </ul>
-
             <ul className="space-y-4 text-right">
               <li>
                 <Link href={"/shopall"}>Categories</Link>
               </li>
               <li>
-                <Link href={"/shopall"}>Tees</Link>
+                <Link href={"/shopall"}>T-Shirts</Link>
               </li>
               <li>
-                <Link href={"/shopall"}>Shorts</Link>
+                <Link href={"/shopall"}>Essentials</Link>
               </li>
               <li>
-                <Link href={"/shopall"}>Tops</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Pants</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Outerwear</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Accessories</Link>
+                <Link href={"/shopall"}>Denim</Link>
               </li>
             </ul>
           </div>
