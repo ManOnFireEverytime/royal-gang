@@ -7,8 +7,8 @@ import Image from "next/image";
 
 import { useQuery } from "@tanstack/react-query";
 
-import heroimage from "../public/heroimage.webp";
-import royalImage1 from "../public/royalImage1.webp";
+import heroimage from "../public/hero-image.webp";
+import royalImage1 from "../public/image-2.webp";
 import royalImage2 from "../public/royalImage2.webp";
 import royalGangImage from "../public/royalGangLogo.webp";
 
