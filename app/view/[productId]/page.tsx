@@ -122,11 +122,11 @@ export default function Page() {
 
   const getImageSrc = (imageNumber: number) => {
     if (!products) return tshirtBack;
-    
+
     const imageKey = `image${imageNumber}` as keyof Product;
     const imagePath = products.product[imageKey];
-    
-    return imagePath ? `${backendBaseUrl}${imagePath}` : tshirtBack;
+
+    return `${backendBaseUrl}${imagePath}`;
   };
 
   return (
@@ -139,7 +139,7 @@ export default function Page() {
 
       {status === "success" && (
         <>
-          <div className="flex flex-col items-center gap-y-8 pb-20 lg:flex-row">
+          <div className="flex flex-col items-center gap-y-8 px-4 pb-20 lg:flex-row lg:px-10">
             <div className="flex w-full flex-col gap-4 lg:basis-1/2">
               {/* Main Product Image */}
               <div className="relative h-[500px] w-full">
@@ -157,13 +157,13 @@ export default function Page() {
                   const imageSrc = getImageSrc(imageNum);
                   const imageKey = `image${imageNum}` as keyof Product;
                   const hasImage = products.product[imageKey];
-                  
+
                   // Only show thumbnail if image exists
                   if (!hasImage && imageNum !== 1) return null;
-                  
+
                   return (
                     <button
-                      key={imageNum}
+                      key={imageKey}
                       type="button"
                       onClick={() => setSelectedImage(imageNum)}
                       className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border-2 transition-all lg:h-24 lg:w-24 ${
