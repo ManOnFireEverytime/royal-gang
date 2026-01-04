@@ -38,10 +38,8 @@ const heleveticaNeue = localFont({
 
 export default function RootLayout({
   children,
-  footers,
 }: Readonly<{
   children: React.ReactNode;
-  footers: React.ReactNode;
 }>) {
   return (
     <html lang="en">
@@ -51,7 +49,6 @@ export default function RootLayout({
         <QueryProvider>
           <Navbar />
           <CartProvider>{children}</CartProvider>
-          {footers}
         </QueryProvider>
       </body>
     </html>

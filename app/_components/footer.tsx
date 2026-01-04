@@ -21,7 +21,7 @@ export default function Footer() {
               </li>
 
               <li>
-                <Link href={"/terms-and-conditions"}>Terms and Condition</Link>
+                <Link href={"/terms-and-conditions"}>Terms and Conditions</Link>
               </li>
             </ul>
           </div>
@@ -57,7 +57,7 @@ export default function Footer() {
             <div>
               <input
                 type="email"
-                className="w-full border-b py-1 capitalize lg:min-w-[200px]"
+                className="w-full border-b py-1 transition-colors duration-200 focus:border-b focus:border-saddleBrown focus:outline-none lg:min-w-[200px]"
                 placeholder="Enter your email address"
               />
             </div>
