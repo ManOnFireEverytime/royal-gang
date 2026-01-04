@@ -13,10 +13,6 @@ export default function Footer() {
 
             <ul className="space-y-8">
               <li>
-                <Link href={"/"}>Privacy Policy</Link>
-              </li>
-
-              <li>
                 <Link href={"refund-policy"}>Refund Policy</Link>
               </li>
 
