@@ -134,22 +134,22 @@ export default function Navbar() {
           <div className="hidden w-full justify-between text-center lg:flex">
             <ul>
               <li>
-                <Link href={"/shopall"}>Shop All</Link>
+                <Link href={"/explore"}>Shop All</Link>
               </li>
             </ul>
 
             <ul className="space-y-4 text-right">
               <li>
-                <Link href={"/shopall"}>Categories</Link>
+                <p>Categories</p>
               </li>
               <li>
-                <Link href={"/shopall"}>T-Shirts</Link>
+                <Link href={"/t-shirts"}>T-Shirts</Link>
               </li>
               <li>
-                <Link href={"/shopall"}>Essentials</Link>
+                <Link href={"/essentials"}>Essentials</Link>
               </li>
               <li>
-                <Link href={"/shopall"}>Denim</Link>
+                <Link href={"/denim"}>Denim</Link>
               </li>
             </ul>
           </div>

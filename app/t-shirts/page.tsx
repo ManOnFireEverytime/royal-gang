@@ -29,6 +29,8 @@ export default function ExploreAll() {
   } = useQuery({
     queryKey: ["products"],
     queryFn: async function (): Promise<Product[]> {
+      //FIXME: UPDATE API ENDPOINT
+
       const response = await fetch(
         "https://backend.royalgangchamber.com/getAllProducts.php",
       );
@@ -45,7 +47,7 @@ export default function ExploreAll() {
 
   return (
     <PageWrapper>
-      <h1 className="py-4 text-center font-bold">ALL PRODUCTS</h1>
+      <h1 className="py-4 text-center font-bold">T-Shirts</h1>
 
       {status === "pending" && (
         <div className="flex justify-center py-10">
