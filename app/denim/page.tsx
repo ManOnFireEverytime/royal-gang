@@ -3,23 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Card from "../_components/Card";
 import PageWrapper from "../_components/PageWrapper";
-
-// Updated Product interface to match your actual data structure
-interface Product {
-  id: string;
-  product_name: string;
-  price: string; // Changed to string since your API returns it as string
-  description: string;
-  colors: string; // Changed to string since it's not an array in your data
-  sizes: string; // Also a comma-separated string, not an array
-  image1: string;
-  image2: string;
-  image3: string | null;
-  image4: string | null;
-  image5: string | null;
-  created_at: string;
-  category: string;
-}
+import { Product } from "../_types/product";
 
 export default function ExploreAll() {
   const {
