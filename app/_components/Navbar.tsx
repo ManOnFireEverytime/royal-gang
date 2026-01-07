@@ -159,6 +159,7 @@ export default function Navbar() {
             <ul className="space-y-6 border-b-2 pb-12 text-3xl text-customGrey">
               <li>
                 <Link
+                  onClick={closeDropdown}
                   className={`${currentPath === "/" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
                   href={"/"}
                 >
@@ -168,8 +169,9 @@ export default function Navbar() {
 
               <li>
                 <Link
-                  className={`${currentPath === "/shop" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
-                  href={"/"}
+                  onClick={closeDropdown}
+                  className={`${currentPath === "/explore" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
+                  href={"/explore"}
                 >
                   SHOP
                 </Link>
@@ -177,6 +179,7 @@ export default function Navbar() {
 
               <li>
                 <Link
+                  onClick={closeDropdown}
                   className={`${currentPath === "/about" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
                   href={"/about"}
                 >
@@ -186,6 +189,7 @@ export default function Navbar() {
 
               <li>
                 <Link
+                  onClick={closeDropdown}
                   className={`${currentPath === "/contact" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
                   href={"/contact"}
                 >
