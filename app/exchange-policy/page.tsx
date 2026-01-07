@@ -53,7 +53,7 @@ export default function Page() {
                 href="mailto:customerservice@royalgang.com"
                 className="text-saddleBrown hover:underline"
               >
-                customerservice@royalgang.com
+                customerservice@royalgangchamber.com
               </a>{" "}
               Include your order number and details of the issue with your item.
             </p>
@@ -127,10 +127,10 @@ export default function Page() {
             questions or require further assistance, please do not hesitate to
             contact us at{" "}
             <a
-              href="mailto:customerservice@royalgang.com"
+              href="mailto:customerservice@royalgangchamber.com"
               className="text-saddleBrown hover:underline"
             >
-              customerservice@royalgang.com
+              customerservice@royalgangchamber.com
             </a>
           </p>
 
