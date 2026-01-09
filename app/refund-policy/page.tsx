@@ -86,10 +86,10 @@ export default function Page() {
           <Policy header="Cancellations and Refunds" number={4}>
             <p>
               If you wish to cancel an order, please contact us as soon as
-              possible at customer service @royalgangchambers.com. If the order
-              has already been shipped, we cannot process a cancellation.
-              However, you may return the item(s) within the specified return
-              period for a refund.
+              possible at customerservice@royalgangchamber.com. If the order has
+              already been shipped, we cannot process a cancellation. However,
+              you may return the item(s) within the specified return period for
+              a refund.
             </p>
           </Policy>
 
@@ -100,10 +100,10 @@ export default function Page() {
               For any questions or assistance regarding our refund policy,
               please reach out to our customer service team at&nbsp;
               <a
-                href="mailto:customerservice@royalgang.com"
+                href="mailto:customerservice@royalgangchamber.com"
                 className="text-saddleBrown hover:underline"
               >
-                customerservice@royalgang.com
+                customerservice@royalgangchamber.com
               </a>
               &nbsp; Our team is happy to help you
             </p>

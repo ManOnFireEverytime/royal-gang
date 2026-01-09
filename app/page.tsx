@@ -7,8 +7,8 @@ import Image from "next/image";
 
 import { useQuery } from "@tanstack/react-query";
 
-import heroimage from "../public/heroimage.webp";
-import royalImage1 from "../public/royalImage1.webp";
+import heroimage from "../public/hero-image.webp";
+import royalImage1 from "../public/image-2.webp";
 import royalImage2 from "../public/royalImage2.webp";
 import royalGangImage from "../public/royalGangLogo.webp";
 
@@ -52,11 +52,11 @@ export default function Home() {
     <main className="z-10 text-white">
       <section className="relative flex h-dvh w-full py-5">
         <Image
-          src={heroimage}
           fill
-          alt="hero image"
-          className="z-5 object-cover"
           quality={100}
+          alt="hero image"
+          src={heroimage}
+          className="z-5 object-cover"
           placeholder="blur"
         />
 
@@ -72,8 +72,8 @@ export default function Home() {
       </section>
 
       {/*render the new in products here*/}
-      <section className="w-full overflow-hidden py-8">
-        <h2 className="mb-2 text-center text-2xl font-medium text-saddleBrown">
+      <section className="w-full space-y-2 overflow-hidden py-8">
+        <h2 className="text-center text-2xl font-medium text-saddleBrown">
           NEW IN
         </h2>
 
@@ -111,8 +111,13 @@ export default function Home() {
         </h2>
 
         <div className="flex w-full items-center gap-4 px-4">
-          <button title="scrollRight" type="button" onClick={scrollLeft}>
-            <CaretLeft className="hidden md:block" />
+          <button
+            className="hidden md:block"
+            title="scrollLeft"
+            type="button"
+            onClick={scrollLeft}
+          >
+            <CaretLeft />
           </button>
 
           <div
@@ -127,8 +132,13 @@ export default function Home() {
               })}
           </div>
 
-          <button title="scrollRight" type="button" onClick={scrollRight}>
-            <CaretRight className="hidden md:block" />
+          <button
+            className="hidden md:block"
+            title="scrollRight"
+            type="button"
+            onClick={scrollRight}
+          >
+            <CaretRight />
           </button>
         </div>
       </section>
@@ -144,25 +154,22 @@ export default function Home() {
           />
         </div>
 
-        <div className="space-y-8 px-8 pb-8 pt-8 text-center text-black md:h-full md:basis-1/2 md:px-10 md:pb-0 md:pt-20 md:text-left lg:px-20">
-          <h2 className="text-3xl font-extrabold text-saddleBrown">About Us</h2>
+        <div className="flex items-center px-4 py-8 text-black md:h-full md:basis-1/2 md:px-10 md:py-0 md:pt-20 lg:px-20">
+          <div className="space-y-8 text-center md:text-left">
+            <h2 className="text-3xl font-extrabold uppercase text-saddleBrown">
+              About Us
+            </h2>
 
-          <p className="text-base">
-            For those who defy convention and rewrite the rules, a sovereign
-            spirit awaits. Royal Gang exceeds mere fashion. It’s a coronation of
-            individuality, where heritage meets audacity. unleash your inner
-            monarch and let each garment becomes a royal decree, a statement
-            crafted with confidence and unwavering self - expression. Join the
-            court of the unconventional here , amongst kindred spirit, you
-            ascend to your rightful throne
-          </p>
-
-          <Link
-            href={"/explore"}
-            className="flex h-[50px] w-full items-center justify-center rounded-lg border-2 border-saddleBrown p-2 text-center font-bold text-saddleBrown md:w-[150px]"
-          >
-            SHOP
-          </Link>
+            <p className="text-lg">
+              Royal Gang is for those who move with quiet authority. We create
+              elevated streetwear built on confidence, culture, and presence
+              pieces designed to feel intentional the moment you put them on.
+              From clean silhouettes to bold statements, every garment is
+              crafted as a rightful standard. Quiet, deliberate and undeniable.
+              Welcome to the court of the unconventional. Step in and ascend to
+              your rightful throne.
+            </p>
+          </div>
         </div>
       </section>
 

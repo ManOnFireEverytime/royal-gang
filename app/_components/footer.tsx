@@ -1,9 +1,67 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 import image4 from "../../public/image4.png";
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error" | "">("");
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      setMessage("Please enter your email address");
+      setMessageType("error");
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage("");
+    setMessageType("");
+
+    try {
+      const response = await fetch(
+        "https://backend.royalgangchamber.com/subscribe-newsletter.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage("Thank you for subscribing to our newsletter!");
+        setMessageType("success");
+        setEmail("");
+      } else {
+        setMessage(data.message || "Something went wrong. Please try again.");
+        setMessageType("error");
+      }
+    } catch (error) {
+      setMessage("Network error. Please try again later.");
+      setMessageType("error");
+      console.error("Error subscribing:", error);
+    } finally {
+      setIsLoading(false);
+      
+      // Clear message after 5 seconds
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 5000);
+    }
+  };
+
   return (
     <footer className={`space-y-10 px-4 py-8 text-black lg:p-16`}>
       <div className="flex flex-col items-center justify-between gap-y-10 lg:flex-row">
@@ -13,11 +71,7 @@ export default function Footer() {
 
             <ul className="space-y-8">
               <li>
-                <Link href={"/"}>Privacy Policy</Link>
-              </li>
-
-              <li>
-                <Link href={"refund-policy"}>Refund Policy</Link>
+                <Link href={"/refund-policy"}>Refund Policy</Link>
               </li>
 
               <li>
@@ -25,7 +79,7 @@ export default function Footer() {
               </li>
 
               <li>
-                <Link href={"/terms-and-conditions"}>Terms and Condition</Link>
+                <Link href={"/terms-and-conditions"}>Terms and Conditions</Link>
               </li>
             </ul>
           </div>
@@ -57,21 +111,34 @@ export default function Footer() {
         <div className="order-2 w-full space-y-5 self-baseline lg:order-2 lg:w-auto lg:space-y-10">
           <h1 className="text-saddleBrown">Newsletter</h1>
 
-          <form className="flex flex-col gap-4 lg:flex-row">
-            <div>
+          <form onSubmit={handleSubscribe} className="flex flex-col gap-4 lg:flex-row">
+            <div className="flex flex-col gap-2">
               <input
                 type="email"
-                className="w-full border-b py-1 capitalize lg:min-w-[200px]"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border-b py-1 transition-colors duration-200 focus:border-b focus:border-saddleBrown focus:outline-none lg:min-w-[200px]"
                 placeholder="Enter your email address"
+                disabled={isLoading}
               />
+              {message && (
+                <p
+                  className={`text-sm ${
+                    messageType === "success" ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {message}
+                </p>
+              )}
             </div>
 
             <button
               type="submit"
-              className="self-start border-b border-saddleBrown py-1 uppercase text-saddleBrown"
+              className="self-start border-b border-saddleBrown py-1 uppercase text-saddleBrown disabled:cursor-not-allowed disabled:opacity-50"
               title="subscribe"
+              disabled={isLoading}
             >
-              SUBSCRIBE
+              {isLoading ? "SUBSCRIBING..." : "SUBSCRIBE"}
             </button>
           </form>
         </div>

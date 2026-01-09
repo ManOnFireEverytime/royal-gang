@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,8 +16,37 @@ const generalSans = localFont({
   src: "../fonts/generalsans/GeneralSans-Variable.ttf",
 });
 
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export default function Navbar() {
   const [isActive, setIsActive] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          "https://backend.royalgangchamber.com/getCategories.php"
+        );
+        const data = await response.json();
+        
+        if (data.status === "success") {
+          setCategories(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   function showDropdown() {
     setIsActive(true);
@@ -134,53 +163,30 @@ export default function Navbar() {
           <div className="hidden w-full justify-between text-center lg:flex">
             <ul>
               <li>
-                <Link href={"/shopall"}>Shop All</Link>
-              </li>
-            </ul>
-
-            <ul className="space-y-4">
-              <li>
-                <Link href={"/shopall"}>Collections</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Fall24</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>DSIN X New Era</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Summer 24</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Pre Summer 24</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Spring 24</Link>
+                <Link href={"/explore"} onClick={closeDropdown}>
+                  Shop All
+                </Link>
               </li>
             </ul>
 
             <ul className="space-y-4 text-right">
               <li>
-                <Link href={"/shopall"}>Categories</Link>
+                <p>Categories</p>
               </li>
-              <li>
-                <Link href={"/shopall"}>Tees</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Shorts</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Tops</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Pants</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Outerwear</Link>
-              </li>
-              <li>
-                <Link href={"/shopall"}>Accessories</Link>
-              </li>
+              {isLoading ? (
+                <li>Loading...</li>
+              ) : (
+                categories.map((category) => (
+                  <li key={category.id}>
+                    <Link
+                      href={`/category/${category.slug}`}
+                      onClick={closeDropdown}
+                    >
+                      {category.name}
+                    </Link>
+                  </li>
+                ))
+              )}
             </ul>
           </div>
 
@@ -189,6 +195,7 @@ export default function Navbar() {
             <ul className="space-y-6 border-b-2 pb-12 text-3xl text-customGrey">
               <li>
                 <Link
+                  onClick={closeDropdown}
                   className={`${currentPath === "/" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
                   href={"/"}
                 >
@@ -198,8 +205,9 @@ export default function Navbar() {
 
               <li>
                 <Link
-                  className={`${currentPath === "/shop" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
-                  href={"/"}
+                  onClick={closeDropdown}
+                  className={`${currentPath === "/explore" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
+                  href={"/explore"}
                 >
                   SHOP
                 </Link>
@@ -207,6 +215,7 @@ export default function Navbar() {
 
               <li>
                 <Link
+                  onClick={closeDropdown}
                   className={`${currentPath === "/about" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
                   href={"/about"}
                 >
@@ -216,6 +225,7 @@ export default function Navbar() {
 
               <li>
                 <Link
+                  onClick={closeDropdown}
                   className={`${currentPath === "/contact" && "text-customBlue"} transition-colors duration-500 hover:text-customBlue active:text-customBlue`}
                   href={"/contact"}
                 >
@@ -223,6 +233,28 @@ export default function Navbar() {
                 </Link>
               </li>
             </ul>
+
+            {/* Mobile Categories */}
+            <div className="mt-8 space-y-4">
+              <p className="text-xl font-semibold text-customGrey">Categories</p>
+              {isLoading ? (
+                <p className="text-customGrey">Loading...</p>
+              ) : (
+                <ul className="space-y-4">
+                  {categories.map((category) => (
+                    <li key={category.id}>
+                      <Link
+                        onClick={closeDropdown}
+                        className="text-lg text-customGrey transition-colors duration-500 hover:text-customBlue"
+                        href={`/category/${category.slug}`}
+                      >
+                        {category.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       </div>

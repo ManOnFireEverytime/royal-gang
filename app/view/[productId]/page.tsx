@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 
 import { useQuery } from "@tanstack/react-query";
 
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 
 import { useCart } from "@/app/Context/CartContext";
 
@@ -23,6 +23,7 @@ const backendBaseUrl = "https://backend.royalgangchamber.com/products/";
 export default function Page() {
   const params = useParams();
   const productId = params.productId;
+  const [showSizeChartModal, setShowSizeChartModal] = useState(false);
 
   const { data: products, status } = useQuery({
     queryKey: ["single-product", `product-${productId}`],
@@ -120,13 +121,22 @@ export default function Page() {
     }, 3000);
   };
 
+  const showSizeChart = () => {
+    setShowSizeChartModal(true);
+  };
+
   const getImageSrc = (imageNumber: number) => {
     if (!products) return tshirtBack;
-    
+
     const imageKey = `image${imageNumber}` as keyof Product;
     const imagePath = products.product[imageKey];
-    
-    return imagePath ? `${backendBaseUrl}${imagePath}` : tshirtBack;
+
+    return `${backendBaseUrl}${imagePath}`;
+  };
+
+  const getSizeChartSrc = () => {
+    if (!products?.product.size_chart) return "";
+    return `${backendBaseUrl}${products.product.size_chart}`;
   };
 
   return (
@@ -139,7 +149,7 @@ export default function Page() {
 
       {status === "success" && (
         <>
-          <div className="flex flex-col items-center gap-y-8 pb-20 lg:flex-row">
+          <div className="flex flex-col items-center gap-y-8 px-4 pb-20 lg:flex-row lg:px-10">
             <div className="flex w-full flex-col gap-4 lg:basis-1/2">
               {/* Main Product Image */}
               <div className="relative h-[500px] w-full">
@@ -157,13 +167,13 @@ export default function Page() {
                   const imageSrc = getImageSrc(imageNum);
                   const imageKey = `image${imageNum}` as keyof Product;
                   const hasImage = products.product[imageKey];
-                  
+
                   // Only show thumbnail if image exists
                   if (!hasImage && imageNum !== 1) return null;
-                  
+
                   return (
                     <button
-                      key={imageNum}
+                      key={imageKey}
                       type="button"
                       onClick={() => setSelectedImage(imageNum)}
                       className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border-2 transition-all lg:h-24 lg:w-24 ${
@@ -191,7 +201,7 @@ export default function Page() {
                 </h1>
 
                 <p className="text-muted-foreground text-lg font-semibold lg:text-2xl">
-                  ₦&nbsp;
+                  £&nbsp;
                   {typeof products.product.price === "string"
                     ? Number(products.product.price).toLocaleString()
                     : products.product.price}
@@ -212,29 +222,40 @@ export default function Page() {
 
               <div className="space-y-6 lg:space-y-4">
                 {/* Size Selection */}
-                <div className="space-y-1">
+                <div className="space-y-4">
                   <h3 className="mb-2 text-sm font-medium">Size</h3>
 
-                  <div className="flex gap-3">
-                    {products.product.sizes?.split(",").length > 0 ? (
-                      products.product.sizes.split(",").map((size) => (
-                        <button
-                          type="button"
-                          key={size}
-                          className={`h-12 w-12 rounded-md ${
-                            selectedSize === size
-                              ? "bg-saddleBrown text-white"
-                              : "bg-[#F9F1E7]"
-                          } transition-colors duration-150`}
-                          onClick={() => handleSizeSelect(size)}
-                        >
-                          {size}
-                        </button>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">
-                        No sizes available
-                      </p>
+                  <div className="w-fit space-y-4">
+                    <div className="flex gap-3">
+                      {products.product.sizes?.split(",").length > 0 ? (
+                        products.product.sizes.split(",").map((size) => (
+                          <button
+                            type="button"
+                            key={size}
+                            className={`h-12 w-12 rounded-md ${
+                              selectedSize === size
+                                ? "bg-saddleBrown text-white"
+                                : "bg-[#F9F1E7]"
+                            } transition-colors duration-150`}
+                            onClick={() => handleSizeSelect(size)}
+                          >
+                            {size}
+                          </button>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          No sizes available
+                        </p>
+                      )}
+                    </div>
+
+                    {products.product.size_chart && (
+                      <button
+                        onClick={showSizeChart}
+                        className="w-full rounded-md border border-saddleBrown bg-transparent px-4 py-2 text-sm text-saddleBrown transition-colors duration-150 hover:bg-saddleBrown hover:text-white"
+                      >
+                        Size Chart
+                      </button>
                     )}
                   </div>
                 </div>
@@ -246,7 +267,7 @@ export default function Page() {
                   {products.product.colors?.split(",").length > 0 ? (
                     <select
                       title="color"
-                      className="w-[40%] rounded-md border p-2 text-left outline-none"
+                      className="w-full rounded-md border p-2 text-left outline-none lg:w-[40%]"
                       onChange={handleColorChange}
                       value={selectedColor}
                     >
@@ -317,6 +338,33 @@ export default function Page() {
                   ))
                 : null}
             </div>
+
+            {/* Size Chart Modal */}
+            {showSizeChartModal && products.product.size_chart && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="relative mx-4 w-full min-w-[300px] max-w-4xl rounded-lg bg-white p-4 sm:p-6 lg:min-w-[600px]">
+                  <div className="relative flex items-center justify-center">
+                    <h2 className="mb-4 text-xl font-bold">Size Chart</h2>
+
+                    <button
+                      onClick={() => setShowSizeChartModal(false)}
+                      className="absolute right-0 top-0 rounded-full p-1 hover:bg-gray-100"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+
+                  <div className="relative h-96 w-full">
+                    <Image
+                      src={getSizeChartSrc()}
+                      fill
+                      alt="Size Chart"
+                      className="object-contain"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}

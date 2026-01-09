@@ -12,4 +12,5 @@ export type Product = {
   image5: string | null;
   created_at: string;
   category: string;
+  size_chart: string | null;
 };
