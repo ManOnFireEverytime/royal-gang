@@ -20,12 +20,24 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
+    
+    script.onload = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: "513931588844-2rjk6ukt0gc84gsho7f4epuu90p7o6up.apps.googleusercontent.com",
+          callback: handleGoogleLoginSuccess,
+        });
+        setIsGoogleLoaded(true);
+      }
+    };
+    
     document.head.appendChild(script);
 
     return () => {
@@ -36,21 +48,69 @@ export default function SignUp() {
   }, []);
 
   const handleSignUpWithGmail = () => {
-    if (window.google) {
-      window.google.accounts.id.initialize({
-        client_id:
-          "513931588844-2rjk6ukt0gc84gsho7f4epuu90p7o6up.apps.googleusercontent.com",
-        callback: handleGoogleLoginSuccess,
-      });
-
-      // Trigger the Google One Tap prompt
-      window.google.accounts.id.prompt();
+    if (window.google && isGoogleLoaded) {
+      // For mobile devices, use renderButton approach
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // Create a temporary container for the Google button
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'fixed';
+        tempContainer.style.top = '-9999px';
+        document.body.appendChild(tempContainer);
+        
+        window.google.accounts.id.renderButton(tempContainer, {
+          type: 'standard',
+          size: 'large',
+        });
+        
+        // Trigger click on the rendered button
+        setTimeout(() => {
+          const googleButton = tempContainer.querySelector('div[role="button"]') as HTMLElement;
+          if (googleButton) {
+            googleButton.click();
+          }
+          // Clean up
+          setTimeout(() => {
+            if (document.body.contains(tempContainer)) {
+              document.body.removeChild(tempContainer);
+            }
+          }, 1000);
+        }, 100);
+      } else {
+        // For desktop, use the One Tap prompt
+        window.google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // Fallback: render button if prompt doesn't show
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'fixed';
+            tempContainer.style.top = '-9999px';
+            document.body.appendChild(tempContainer);
+            
+            window.google.accounts.id.renderButton(tempContainer, {
+              type: 'standard',
+              size: 'large',
+            });
+            
+            setTimeout(() => {
+              const googleButton = tempContainer.querySelector('div[role="button"]') as HTMLElement;
+              if (googleButton) {
+                googleButton.click();
+              }
+              setTimeout(() => {
+                if (document.body.contains(tempContainer)) {
+                  document.body.removeChild(tempContainer);
+                }
+              }, 1000);
+            }, 100);
+          }
+        });
+      }
     }
   };
 
   const handleGoogleLoginSuccess = async (response: any) => {
     const token = response.credential;
-
     const userData = { token: token };
 
     try {
@@ -68,7 +128,6 @@ export default function SignUp() {
       const data = await res.json();
 
       if (data.success) {
-        // Login user immediately after Google signup
         login({
           email: data.email || "",
           first_name: data.first_name,
