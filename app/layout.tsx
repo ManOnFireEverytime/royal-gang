@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CartProvider } from "@/app/Context/CartContext";
+import { AuthProvider } from "@/app/Context/AuthContext";
 
 import "./globals.css";
 import Navbar from "./_components/Navbar";
@@ -47,8 +48,10 @@ export default function RootLayout({
         className={`bg-white antialiased ${heleveticaNeue.className} scrollbar`}
       >
         <QueryProvider>
-          <Navbar />
-          <CartProvider>{children}</CartProvider>
+          <AuthProvider>
+            <Navbar />
+            <CartProvider>{children}</CartProvider>
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>
