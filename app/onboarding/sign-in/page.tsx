@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import { useAuth } from "@/app/Context/AuthContext";
 
 import royalImage2 from "../../../public/royalImage2.webp";
 
+
 export default function SignIn() {
   const router = useRouter();
   const { login } = useAuth();
@@ -19,24 +20,12 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
-    
-    script.onload = () => {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: "513931588844-2rjk6ukt0gc84gsho7f4epuu90p7o6up.apps.googleusercontent.com",
-          callback: handleGoogleLoginSuccess,
-        });
-        setIsGoogleLoaded(true);
-      }
-    };
-    
     document.head.appendChild(script);
 
     return () => {
@@ -47,69 +36,86 @@ export default function SignIn() {
   }, []);
 
   const handleSignInWithGmail = () => {
-    if (window.google && isGoogleLoaded) {
-      // For mobile devices, use renderButton approach
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id:
+          "513931588844-2rjk6ukt0gc84gsho7f4epuu90p7o6up.apps.googleusercontent.com",
+        callback: handleGoogleLoginSuccess,
+        ux_mode: "popup", // Use popup mode instead of one-tap
+      });
+
+      // Use renderButton for custom button or prompt for popup
+      window.google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // If one-tap doesn't work, fall back to popup
+          window.google.accounts.oauth2.initTokenClient({
+            client_id: "513931588844-2rjk6ukt0gc84gsho7f4epuu90p7o6up.apps.googleusercontent.com",
+            scope: "email profile",
+            callback: handleGoogleTokenResponse,
+          }).requestAccessToken();
+        }
+      });
+    }
+  };
+
+  const handleGoogleTokenResponse = async (tokenResponse: any) => {
+    if (tokenResponse && tokenResponse.access_token) {
+      // Get user info from Google
+      const userInfoResponse = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        }
+      );
+      const userInfo = await userInfoResponse.json();
       
-      if (isMobile) {
-        // Create a temporary container for the Google button
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'fixed';
-        tempContainer.style.top = '-9999px';
-        document.body.appendChild(tempContainer);
-        
-        window.google.accounts.id.renderButton(tempContainer, {
-          type: 'standard',
-          size: 'large',
-        });
-        
-        // Trigger click on the rendered button
-        setTimeout(() => {
-          const googleButton = tempContainer.querySelector('div[role="button"]') as HTMLElement;
-          if (googleButton) {
-            googleButton.click();
+      // Send to your backend
+      const userData = { 
+        token: tokenResponse.access_token,
+        email: userInfo.email,
+        first_name: userInfo.given_name,
+        last_name: userInfo.family_name,
+      };
+
+      try {
+        const res = await fetch(
+          "https://backend.royalgangchamber.com/getGoogleUser.php",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(userData),
           }
-          // Clean up
-          setTimeout(() => {
-            if (document.body.contains(tempContainer)) {
-              document.body.removeChild(tempContainer);
-            }
-          }, 1000);
-        }, 100);
-      } else {
-        // For desktop, use the One Tap prompt
-        window.google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // Fallback: render button if prompt doesn't show
-            const tempContainer = document.createElement('div');
-            tempContainer.style.position = 'fixed';
-            tempContainer.style.top = '-9999px';
-            document.body.appendChild(tempContainer);
-            
-            window.google.accounts.id.renderButton(tempContainer, {
-              type: 'standard',
-              size: 'large',
-            });
-            
-            setTimeout(() => {
-              const googleButton = tempContainer.querySelector('div[role="button"]') as HTMLElement;
-              if (googleButton) {
-                googleButton.click();
-              }
-              setTimeout(() => {
-                if (document.body.contains(tempContainer)) {
-                  document.body.removeChild(tempContainer);
-                }
-              }, 1000);
-            }, 100);
-          }
-        });
+        );
+
+        const data = await res.json();
+
+        if (data.success) {
+          login({
+            email: data.email || "",
+            first_name: data.first_name,
+            last_name: data.last_name || "",
+          });
+          setSuccessMessage(data.message);
+          setErrorMessage("");
+          router.push("/");
+        } else {
+          setErrorMessage(data.message);
+          setSuccessMessage("");
+        }
+      } catch (err) {
+        setErrorMessage("An error occurred. Please try again later.");
+        setSuccessMessage("");
       }
     }
   };
 
   const handleGoogleLoginSuccess = async (response: any) => {
     const token = response.credential;
+
     const userData = { token: token };
 
     try {
