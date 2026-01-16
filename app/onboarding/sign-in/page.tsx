@@ -40,7 +40,7 @@ export default function SignIn() {
     if (window.google && googleButtonRef.current) {
       window.google.accounts.id.initialize({
         client_id:
-          "513931588844-2rjk6ukt0gc84gsho7f4epuu90p7o6up.apps.googleusercontent.com",
+          "666607740693-9eg79rubd79sc9ktptfq4jtgtfkqla32.apps.googleusercontent.com",
         callback: handleGoogleLoginSuccess,
       });
 
